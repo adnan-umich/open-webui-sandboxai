@@ -68,6 +68,7 @@
 
 	let selectedTag = '';
 	let selectedConnectionType = '';
+	let selectedQuantType = '';
 
 	let ollamaVersion = null;
 	let selectedModelIdx = 0;
@@ -112,6 +113,12 @@
 							return item.model?.direct;
 						}
 					})
+					.filter((item) => {
+						if (selectedQuantType === '') {
+							return true;
+						}
+						return extractModelInfo(item.model).quantLevel === selectedQuantType;
+					})
 			: items
 					.filter((item) => {
 						if (selectedTag === '') {
@@ -130,9 +137,15 @@
 							return item.model?.direct;
 						}
 					})
+					.filter((item) => {
+						if (selectedQuantType === '') {
+							return true;
+						}
+						return extractModelInfo(item.model).quantLevel === selectedQuantType;
+					})
 	).filter((item) => !(item.model?.info?.meta?.hidden ?? false));
 
-	$: if (selectedTag || selectedConnectionType) {
+	$: if (selectedTag || selectedConnectionType || selectedQuantType) {
 		resetView();
 	} else {
 		resetView();
@@ -371,32 +384,22 @@
 	$: organizedModels = (() => {
 		const byParam = {};
 
-		// Group models by parameter size
+		// Group models by parameter size only
 		filteredItems.forEach((item) => {
-			const { paramSize, quantLevel } = extractModelInfo(item.model);
+			const { paramSize } = extractModelInfo(item.model);
 
 			if (!byParam[paramSize]) {
-				byParam[paramSize] = {};
+				byParam[paramSize] = [];
 			}
 
-			if (!byParam[paramSize][quantLevel]) {
-				byParam[paramSize][quantLevel] = [];
-			}
-
-			byParam[paramSize][quantLevel].push(item);
+			byParam[paramSize].push(item);
 		});
 
 		// Convert to array format for easier rendering
 		return Object.entries(byParam)
-			.map(([paramSize, quantGroups]) => ({
+			.map(([paramSize, models]) => ({
 				paramSize,
-				// Convert quant groups to array and sort alphabetically
-				quantGroups: Object.entries(quantGroups)
-					.map(([quantLevel, models]) => ({
-						quantLevel,
-						models
-					}))
-					.sort((a, b) => a.quantLevel.localeCompare(b.quantLevel))
+				models
 			}))
 			.sort((a, b) => {
 				// Sort parameter sizes numerically (extract numbers and compare)
@@ -405,6 +408,16 @@
 				return numB - numA; // Larger models first
 			});
 	})();
+
+	let uniqueQuantTypes = [];
+
+	// Extract unique quantization types
+	$: if (items) {
+		const quantTypes = items
+			.map((item) => extractModelInfo(item.model).quantLevel)
+			.filter((quant) => quant !== 'Unknown');
+		uniqueQuantTypes = Array.from(new Set(quantTypes)).sort();
+	}
 </script>
 
 <DropdownMenu.Root
@@ -483,7 +496,7 @@
 				</div>
 			{/if}
 
-			<div class="px-3 max-h-64 overflow-y-auto scrollbar-hidden group relative">
+			<div class="px-3 max-h-80 overflow-y-auto scrollbar-hidden group relative">
 				{#if tags && items.filter((item) => !(item.model?.info?.meta?.hidden ?? false)).length > 0}
 					<div
 						class="flex w-full sticky top-0 z-10 bg-white dark:bg-gray-850 overflow-x-auto scrollbar-none"
@@ -498,15 +511,18 @@
 							class="flex gap-1 w-fit text-center text-sm font-medium rounded-full bg-transparent px-1.5 pb-0.5"
 							bind:this={tagsContainerElement}
 						>
-							{#if (items.find((item) => item.model?.connection_type === 'local') && items.find((item) => item.model?.connection_type === 'external')) || items.find((item) => item.model?.direct) || tags.length > 0}
+							{#if (items.find((item) => item.model?.connection_type === 'local') && items.find((item) => item.model?.connection_type === 'external')) || items.find((item) => item.model?.direct) || tags.length > 0 || uniqueQuantTypes.length > 0}
+								<span class="min-w-fit outline-none p-1.5">Quant: </span>
 								<button
 									class="min-w-fit outline-none p-1.5 {selectedTag === '' &&
-									selectedConnectionType === ''
+									selectedConnectionType === '' &&
+									selectedQuantType === ''
 										? ''
 										: 'text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'} transition capitalize"
 									on:click={() => {
 										selectedConnectionType = '';
 										selectedTag = '';
+										selectedQuantType = '';
 									}}
 								>
 									{$i18n.t('All')}
@@ -552,6 +568,24 @@
 								</button>
 							{/if}
 
+							{#if uniqueQuantTypes.length > 0}
+								<div class="h-5 mx-1 border-l border-gray-300 dark:border-gray-600"></div>
+								{#each uniqueQuantTypes as quantType}
+									<button
+										class="min-w-fit outline-none p-1.5 {selectedQuantType === quantType
+											? ''
+											: 'text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'} transition"
+										on:click={() => {
+											selectedTag = '';
+											selectedConnectionType = '';
+											selectedQuantType = quantType;
+										}}
+									>
+										{quantType}
+									</button>
+								{/each}
+							{/if}
+
 							{#each tags as tag}
 								<button
 									class="min-w-fit outline-none p-1.5 {selectedTag === tag
@@ -577,221 +611,255 @@
 								{paramGroup.paramSize}
 							</div>
 
-							<!-- Quantization level groups -->
-							{#each paramGroup.quantGroups as quantGroup}
-								<div class="pl-3">
-									<!-- Quantization level header -->
-									<div class="text-xs font-medium text-gray-500 dark:text-gray-500 mt-1.5">
-										{quantGroup.quantLevel}
-									</div>
+							<!-- Models within this parameter size group -->
+							<div class="pl-3">
+								{#each paramGroup.models as item}
+									{@const index = filteredItems.findIndex((i) => i.value === item.value)}
+									<button
+										aria-label="model-item"
+										class="flex w-full text-left font-medium line-clamp-1 select-none items-center rounded-button py-2 pl-3 pr-1.5 text-sm text-gray-700 dark:text-gray-100 outline-hidden transition-all duration-75 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer data-highlighted:bg-muted {index === selectedModelIdx ? 'bg-gray-100 dark:bg-gray-800 group-hover:bg-transparent' : ''}"
+										data-arrow-selected={index === selectedModelIdx}
+										data-value={item.value}
+										on:click={() => {
+											value = item.value;
+											selectedModelIdx = index;
+											show = false;
+										}}
+									>
+										<div class="flex flex-col">
+											{#if $mobile && (item?.model?.tags ?? []).length > 0}
+												<div class="flex gap-0.5 self-start h-full mb-1.5 -translate-x-1">
+													{#each item.model?.tags.sort((a, b) => a.name.localeCompare(b.name)) as tag}
+														<div class="text-xs font-bold px-1 rounded-sm uppercase line-clamp-1 bg-gray-500/20 text-gray-700 dark:text-gray-200">
+															{tag.name}
+														</div>
+													{/each}
+												</div>
+											{/if}
 
-									<!-- Models within this quantization group -->
-									{#each quantGroup.models as item}
-										{@const index = filteredItems.findIndex((i) => i.value === item.value)}
-										<button
-											aria-label="model-item"
-											class="flex w-full text-left font-medium line-clamp-1 select-none items-center rounded-button py-2 pl-3 pr-1.5 text-sm text-gray-700 dark:text-gray-100 outline-hidden transition-all duration-75 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer data-highlighted:bg-muted {index === selectedModelIdx ? 'bg-gray-100 dark:bg-gray-800 group-hover:bg-transparent' : ''}"
-											data-arrow-selected={index === selectedModelIdx}
-											data-value={item.value}
-											on:click={() => {
-												value = item.value;
-												selectedModelIdx = index;
-												show = false;
-											}}
-										>
-											<div class="flex flex-col">
-												{#if $mobile && (item?.model?.tags ?? []).length > 0}
-													<div class="flex gap-0.5 self-start h-full mb-1.5 -translate-x-1">
-														{#each item.model?.tags.sort((a, b) => a.name.localeCompare(b.name)) as tag}
-															<div class="text-xs font-bold px-1 rounded-sm uppercase line-clamp-1 bg-gray-500/20 text-gray-700 dark:text-gray-200">
-																{tag.name}
-															</div>
-														{/each}
+											<div class="flex items-center gap-2">
+												<div class="flex items-center min-w-fit">
+													<div class="line-clamp-1">
+														<div class="flex items-center min-w-fit">
+															<Tooltip
+																content={$user?.role === 'admin' ? (item?.value ?? '') : ''}
+																placement="top-start"
+															>
+																<img
+																	src={item.model?.info?.meta?.profile_image_url ?? '/static/favicon.png'}
+																	alt="Model"
+																	class="rounded-full size-5 flex items-center mr-2"
+																/>
+
+																<div class="flex items-center line-clamp-1">
+																	<div class="line-clamp-1 flex items-center gap-1">
+																		{item.label}
+																		<Tooltip
+																			content={item.model?.info?.meta?.description 
+																				? `${marked.parse(
+																					sanitizeResponseContent(item.model?.info?.meta?.description).replaceAll(
+																						'\n',
+																						'<br>'
+																					)
+																				)}`
+																				: item.model?.description 
+																					? `${marked.parse(
+																						sanitizeResponseContent(item.model?.description).replaceAll(
+																							'\n',
+																							'<br>'
+																						)
+																					)}`
+																					: item.model?.openai?.description
+																						? `${marked.parse(
+																							sanitizeResponseContent(item.model?.openai?.description).replaceAll(
+																								'\n',
+																								'<br>'
+																							)
+																						)}`
+																						: $i18n.t('No description available')
+																			}
+																		>
+																			<div class="translate-y-[1px] ml-1 text-gray-500 dark:text-gray-400">
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					fill="none"
+																					viewBox="0 0 24 24"
+																					stroke-width="1.5"
+																					stroke="currentColor"
+																					class="w-3.5 h-3.5"
+																				>
+																					<path
+																						stroke-linecap="round"
+																						stroke-linejoin="round"
+																						d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+																					/>
+																				</svg>
+																			</div>
+																		</Tooltip>
+																	</div>
+																</div>
+															</Tooltip>
+														</div>
 													</div>
+												</div>
+
+												{#if item.model.owned_by === 'ollama'}
+													{#if (item.model.ollama?.details?.parameter_size ?? '') !== '' && false}
+														<div class="flex items-center translate-y-[0.5px]">
+															<Tooltip
+																content={`${
+																	item.model.ollama?.details?.quantization_level
+																		? item.model.ollama?.details?.quantization_level + ' '
+																		: ''
+																}${
+																	item.model.ollama?.size
+																		? `(${(item.model.ollama?.size / 1024 ** 3).toFixed(1)}GB)`
+																		: ''
+																}`}
+																className="self-end"
+															>
+																<span
+																	class="text-xs font-medium text-gray-600 dark:text-gray-400 line-clamp-1"
+																>{item.model.ollama?.details?.parameter_size ?? ''}</span>
+															</Tooltip>
+														</div>
+													{/if}
+													{#if item.model.ollama?.size}
+														<div class="flex items-center translate-y-[0.5px]">
+															<span class="text-xs font-medium text-gray-600 dark:text-gray-400">
+																{(item.model.ollama?.size / 1024 ** 3).toFixed(1)}GB
+															</span>
+														</div>
+													{/if}
+													{#if item.model.ollama?.expires_at && new Date(item.model.ollama?.expires_at * 1000) > new Date()}
+														<div class="flex items-center translate-y-[0.5px] px-0.5">
+															<Tooltip
+																content={`${$i18n.t('Unloads {{FROM_NOW}}', {
+																	FROM_NOW: dayjs(item.model.ollama?.expires_at * 1000).fromNow()
+																})}`}
+																className="self-end"
+															>
+																<div class="flex items-center">
+																	<span class="relative flex size-2">
+																		<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+																		<span class="relative inline-flex rounded-full size-2 bg-green-500"></span>
+																	</span>
+																</div>
+															</Tooltip>
+														</div>
+													{/if}
 												{/if}
 
-												<div class="flex items-center gap-2">
-													<div class="flex items-center min-w-fit">
-														<div class="line-clamp-1">
-															<div class="flex items-center min-w-fit">
-																<Tooltip
-																	content={$user?.role === 'admin' ? (item?.value ?? '') : ''}
-																	placement="top-start"
-																>
-																	<img
-																		src={item.model?.info?.meta?.profile_image_url ?? '/static/favicon.png'}
-																		alt="Model"
-																		class="rounded-full size-5 flex items-center mr-2"
-																	/>
-
-																	<div class="flex items-center line-clamp-1">
-																		<div class="line-clamp-1">
-																			{item.label}
-																		</div>
-																	</div>
-																</Tooltip>
-															</div>
+												{#if item.model?.direct}
+													<Tooltip content={`${$i18n.t('Direct')}`}>
+														<div class="translate-y-[1px]">
+															<svg
+																xmlns="http://www.w3.org/2000/svg"
+																viewBox="0 0 16 16"
+																fill="currentColor"
+																class="size-3"
+															>
+																<path
+																	fill-rule="evenodd"
+																	d="M2 2.75A.75.75 0 0 1 2.75 2C8.963 2 14 7.037 14 13.25a.75.75 0 0 1-1.5 0c0-5.385-4.365-9.75-9.75-9.75A.75.75 0 0 1 2 2.75Zm0 4.5a.75.75 0 0 1 .75-.75 6.75 6.75 0 0 1 6.75 6.75.75.75 0 0 1-1.5 0C8 10.35 5.65 8 2.75 8A.75.75 0 0 1 2 7.25ZM3.5 11a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"
+																	clip-rule="evenodd"
+																/>
+															</svg>
 														</div>
-													</div>
-
-													{#if item.model.owned_by === 'ollama'}
-														{#if (item.model.ollama?.details?.parameter_size ?? '') !== '' && false}
-															<div class="flex items-center translate-y-[0.5px]">
-																<Tooltip
-																	content={`${
-																		item.model.ollama?.details?.quantization_level
-																			? item.model.ollama?.details?.quantization_level + ' '
-																			: ''
-																	}${
-																		item.model.ollama?.size
-																			? `(${(item.model.ollama?.size / 1024 ** 3).toFixed(1)}GB)`
-																			: ''
-																	}`}
-																	className="self-end"
-																>
-																	<span
-																		class="text-xs font-medium text-gray-600 dark:text-gray-400 line-clamp-1"
-																	>{item.model.ollama?.details?.parameter_size ?? ''}</span>
-																</Tooltip>
-															</div>
-														{/if}
-														{#if item.model.ollama?.size}
-															<div class="flex items-center translate-y-[0.5px]">
-																<span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-																	{(item.model.ollama?.size / 1024 ** 3).toFixed(1)}GB
-																</span>
-															</div>
-														{/if}
-														{#if item.model.ollama?.expires_at && new Date(item.model.ollama?.expires_at * 1000) > new Date()}
-															<div class="flex items-center translate-y-[0.5px] px-0.5">
-																<Tooltip
-																	content={`${$i18n.t('Unloads {{FROM_NOW}}', {
-																		FROM_NOW: dayjs(item.model.ollama?.expires_at * 1000).fromNow()
-																	})}`}
-																	className="self-end"
-																>
-																	<div class="flex items-center">
-																		<span class="relative flex size-2">
-																			<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-																			<span class="relative inline-flex rounded-full size-2 bg-green-500"></span>
-																		</span>
-																	</div>
-																</Tooltip>
-															</div>
-														{/if}
-													{/if}
-
-													{#if item.model?.direct}
-														<Tooltip content={`${$i18n.t('Direct')}`}>
-															<div class="translate-y-[1px]">
-																<svg
-																	xmlns="http://www.w3.org/2000/svg"
-																	viewBox="0 0 16 16"
-																	fill="currentColor"
-																	class="size-3"
-																>
-																	<path
-																		fill-rule="evenodd"
-																		d="M2 2.75A.75.75 0 0 1 2.75 2C8.963 2 14 7.037 14 13.25a.75.75 0 0 1-1.5 0c0-5.385-4.365-9.75-9.75-9.75A.75.75 0 0 1 2 2.75Zm0 4.5a.75.75 0 0 1 .75-.75 6.75 6.75 0 0 1 6.75 6.75.75.75 0 0 1-1.5 0C8 10.35 5.65 8 2.75 8A.75.75 0 0 1 2 7.25ZM3.5 11a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"
-																		clip-rule="evenodd"
-																	/>
-																</svg>
-															</div>
-														</Tooltip>
-													{:else if item.model.connection_type === 'external'}
-														<Tooltip content={`${$i18n.t('External')}`}>
-															<div class="translate-y-[1px]">
-																<svg
-																	xmlns="http://www.w3.org/2000/svg"
-																	viewBox="0 0 16 16"
-																	fill="currentColor"
-																	class="size-3"
-																>
-																	<path
-																		fill-rule="evenodd"
-																		d="M8.914 6.025a.75.75 0 0 1 1.06 0 3.5 3.5 0 0 1 0 4.95l-2 2a3.5 3.5 0 0 1-5.396-4.402.75.75 0 0 1 1.251.827 2 2 0 0 0 3.085 2.514l2-2a2 2 0 0 0 0-2.828.75.75 0 0 1 0-1.06Z"
-																		clip-rule="evenodd"
-																	/>
-																	<path
-																		fill-rule="evenodd"
-																		d="M7.086 9.975a.75.75 0 0 1-1.06 0 3.5 3.5 0 0 1 0-4.95l2-2a3.5 3.5 0 0 1 5.396 4.402.75.75 0 0 1-1.251-.827 2 2 0 0 0-3.085-2.514l-2 2a2 2 0 0 0 0 2.828.75.75 0 0 1 0 1.06Z"
-																		clip-rule="evenodd"
-																	/>
-																</svg>
-															</div>
-														</Tooltip>
-													{/if}
-
-													{#if item.model?.info?.meta?.description}
-														<Tooltip
-															content={`${marked.parse(
-																sanitizeResponseContent(item.model?.info?.meta?.description).replaceAll(
-																	'\n',
-																	'<br>'
-																)
-															)}`}
-														>
-															<div class=" translate-y-[1px]">
-																<svg
-																	xmlns="http://www.w3.org/2000/svg"
-																	fill="none"
-																	viewBox="0 0 24 24"
-																	stroke-width="1.5"
-																	stroke="currentColor"
-																	class="w-4 h-4"
-																>
-																	<path
-																		stroke-linecap="round"
-																		stroke-linejoin="round"
-																		d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
-																	/>
-																</svg>
-															</div>
-														</Tooltip>
-													{/if}
-
-													{#if !$mobile && (item?.model?.tags ?? []).length > 0}
-														<div
-															class="flex gap-0.5 self-center items-center h-full translate-y-[0.5px] overflow-x-auto scrollbar-none"
-														>
-															{#each item.model?.tags.sort((a, b) => a.name.localeCompare(b.name)) as tag}
-																<Tooltip content={tag.name} className="flex-shrink-0">
-																	<div
-																		class=" text-xs font-bold px-1 rounded-sm uppercase bg-gray-500/20 text-gray-700 dark:text-gray-200"
-																	>
-																		{tag.name}
-																	</div>
-																</Tooltip>
-															{/each}
+													</Tooltip>
+												{:else if item.model.connection_type === 'external'}
+													<Tooltip content={`${$i18n.t('External')}`}>
+														<div class="translate-y-[1px]">
+															<svg
+																xmlns="http://www.w3.org/2000/svg"
+																viewBox="0 0 16 16"
+																fill="currentColor"
+																class="size-3"
+															>
+																<path
+																	fill-rule="evenodd"
+																	d="M8.914 6.025a.75.75 0 0 1 1.06 0 3.5 3.5 0 0 1 0 4.95l-2 2a3.5 3.5 0 0 1-5.396-4.402.75.75 0 0 1 1.251.827 2 2 0 0 0 3.085 2.514l2-2a2 2 0 0 0 0-2.828.75.75 0 0 1 0-1.06Z"
+																	clip-rule="evenodd"
+																/>
+																<path
+																	fill-rule="evenodd"
+																	d="M7.086 9.975a.75.75 0 0 1-1.06 0 3.5 3.5 0 0 1 0-4.95l2-2a3.5 3.5 0 0 1 5.396 4.402.75.75 0 0 1-1.251-.827 2 2 0 0 0-3.085-2.514l-2 2a2 2 0 0 0 0 2.828.75.75 0 0 1 0 1.06Z"
+																	clip-rule="evenodd"
+																/>
+															</svg>
 														</div>
-													{/if}
-												</div>
-											</div>
-
-											<div class="ml-auto pl-2 pr-1 flex gap-1.5 items-center">
-												{#if $user?.role === 'admin' && item.model.owned_by === 'ollama' && item.model.ollama?.expires_at && new Date(item.model.ollama?.expires_at * 1000) > new Date()}
-													<Tooltip content={`${$i18n.t('Eject')}`} className="flex-shrink-0">
-														<button
-															class="flex"
-															on:click={() => {
-																unloadModelHandler(item.value);
-															}}
-														>
-															<ArrowUpTray className="size-3" />
-														</button>
 													</Tooltip>
 												{/if}
 
-												{#if value === item.value}
-													<div>
-														<Check className="size-3" />
+												{#if item.model?.info?.meta?.description}
+													<Tooltip
+														content={`${marked.parse(
+															sanitizeResponseContent(item.model?.info?.meta?.description).replaceAll(
+																'\n',
+																'<br>'
+															)
+														)}`}
+													>
+														<div class=" translate-y-[1px]">
+															<svg
+																xmlns="http://www.w3.org/2000/svg"
+																fill="none"
+																viewBox="0 0 24 24"
+																stroke-width="1.5"
+																stroke="currentColor"
+																class="w-4 h-4"
+															>
+																<path
+																	stroke-linecap="round"
+																	stroke-linejoin="round"
+																	d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+																/>
+															</svg>
+														</div>
+													</Tooltip>
+												{/if}
+
+												{#if !$mobile && (item?.model?.tags ?? []).length > 0}
+													<div
+														class="flex gap-0.5 self-center items-center h-full translate-y-[0.5px] overflow-x-auto scrollbar-none"
+													>
+														{#each item.model?.tags.sort((a, b) => a.name.localeCompare(b.name)) as tag}
+															<Tooltip content={tag.name} className="flex-shrink-0">
+																<div
+																	class=" text-xs font-bold px-1 rounded-sm uppercase bg-gray-500/20 text-gray-700 dark:text-gray-200"
+																>
+																	{tag.name}
+																</div>
+															</Tooltip>
+														{/each}
 													</div>
 												{/if}
 											</div>
-										</button>
-									{/each}
-								</div>
-							{/each}
+										</div>
+
+										<div class="ml-auto pl-2 pr-1 flex gap-1.5 items-center">
+											{#if $user?.role === 'admin' && item.model.owned_by === 'ollama' && item.model.ollama?.expires_at && new Date(item.model.ollama?.expires_at * 1000) > new Date()}
+												<Tooltip content={`${$i18n.t('Eject')}`} className="flex-shrink-0">
+													<button
+														class="flex"
+														on:click={() => {
+															unloadModelHandler(item.value);
+														}}
+													>
+														<ArrowUpTray className="size-3" />
+													</button>
+												</Tooltip>
+											{/if}
+
+											{#if value === item.value}
+												<div>
+													<Check className="size-3" />
+												</div>
+											{/if}
+										</div>
+									</button>
+								{/each}
+							</div>
 						</div>
 					{/each}
 				{:else}
