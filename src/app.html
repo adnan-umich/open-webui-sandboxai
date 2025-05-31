@@ -108,7 +108,7 @@
 
 	<body data-sveltekit-preload-data="hover">
 		<!-- App wrapper with menu bar and content -->
-		<div id="app-wrapper" class="flex flex-col min-h-screen max-h-screen overflow-hidden">
+		<div id="app-wrapper" class="flex flex-col h-screen max-h-screen overflow-hidden">
 			<!-- Top menu bar -->
 			<div id="top-menu-bar" class="app-menu-bar">
 				<div class="menu-container">
@@ -124,8 +124,8 @@
 				</div>
 			</div>
 			
-			<!-- Main content area -->
-			<div id="app-content" class="flex-1 overflow-auto">
+			<!-- Main content area with auto height adjustment -->
+			<div id="app-content" class="flex-1 h-0 overflow-auto">
 				<div style="display: contents">%sveltekit.body%</div>
 			</div>
 		</div>
@@ -405,4 +405,103 @@
 			font-size: 13px;
 		}
 	}
+	
+	/* Complete height adjustment fix */
+	html, body {
+		height: 100% !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		overflow: hidden !important;
+	}
+	
+	#app-wrapper {
+		display: flex !important;
+		flex-direction: column !important;
+		height: 100vh !important;
+		max-height: 100vh !important;
+		width: 100% !important;
+		overflow: hidden !important;
+		position: relative !important;
+	}
+	
+	#app-content {
+		flex: 1 0 auto !important;
+		height: calc(100vh - 60px) !important;
+		max-height: calc(100vh - 60px) !important;
+		position: relative !important;
+		overflow-y: auto !important;
+		overflow-x: hidden !important;
+	}
+	
+	/* Fix for any SvelteKit content wrappers */
+	#app-content > div, 
+	#app-content > div > div,
+	#app-content [data-sveltekit-root] {
+		height: 100% !important;
+		max-height: 100% !important;
+		display: flex !important;
+		flex-direction: column !important;
+		min-height: 0 !important;
+	}
+	
+	/* Fix for common WebUI components */
+	#app-content .h-screen,
+	#app-content .min-h-screen,
+	#app-content .max-h-screen,
+	#app-content [class*="h-[100vh]"],
+	#app-content [class*="min-h-[100vh]"],
+	#app-content [class*="max-h-[100vh]"] {
+		height: 100% !important;
+		min-height: 0 !important;
+		max-height: 100% !important;
+	}
+	
+	/* Responsive settings */
+	@media (max-height: 600px) {
+		.app-menu-bar {
+			height: 50px !important;
+		}
+		
+		#app-content {
+			height: calc(100vh - 50px) !important;
+			max-height: calc(100vh - 50px) !important;
+		}
+	}
+	
+	/* Mobile fix */
+	@supports (-webkit-touch-callout: none) {
+		body, #app-wrapper {
+			height: -webkit-fill-available !important;
+			max-height: -webkit-fill-available !important;
+		}
+		
+		#app-content {
+			height: calc(-webkit-fill-available - 60px) !important;
+			max-height: calc(-webkit-fill-available - 60px) !important;
+		}
+		
+		@media (max-height: 600px) {
+			#app-content {
+				height: calc(-webkit-fill-available - 50px) !important;
+				max-height: calc(-webkit-fill-available - 50px) !important;
+			}
+		}
+	}
+
+	/* Add this script to fix any dynamic height issues after page load */
+	document.addEventListener('DOMContentLoaded', function() {
+		// Ensure content properly fills the available space
+		function adjustContentHeight() {
+			const menuHeight = document.getElementById('top-menu-bar').offsetHeight;
+			const content = document.getElementById('app-content');
+			content.style.height = `calc(100vh - ${menuHeight}px)`;
+			content.style.maxHeight = `calc(100vh - ${menuHeight}px)`;
+		}
+		
+		// Initial adjustment
+		adjustContentHeight();
+		
+		// Adjust on resize
+		window.addEventListener('resize', adjustContentHeight);
+	});
 </style>
