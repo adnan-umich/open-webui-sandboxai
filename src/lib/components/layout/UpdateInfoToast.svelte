@@ -14,7 +14,7 @@
 </script>
 
 <div
-	class="flex items-start bg-[#F1F8FE] dark:bg-[#020C1D] border border-[3371D5] dark:border-[#03113B] text-[#2B6CD4] dark:text-[#6795EC] rounded-lg px-3.5 py-3 text-xs max-w-80 pr-2 w-full shadow-lg"
+    class="fixed top-[60px] left-1/2 -translate-x-1/2 z-50 flex items-start bg-[#F1F8FE] dark:bg-[#020C1D] border border-[3371D5] dark:border-[#03113B] text-[#2B6CD4] dark:text-[#6795EC] rounded-lg px-5 py-4 text-xs max-w-80 w-full shadow-lg"
 >
 	<div class="flex-1 font-medium">
 		{$i18n.t(`A new version (v{{LATEST_VERSION}}) is now available.`, {
