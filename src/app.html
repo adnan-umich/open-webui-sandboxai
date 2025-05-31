@@ -113,8 +113,10 @@
 			<div id="top-menu-bar" class="app-menu-bar">
 				<div class="menu-container">
 					<div class="logo-section">
-						<img src="/static/favicon.png" alt="Logo" class="menu-logo">
-						<span class="menu-title">Open WebUI</span>
+						<div class="logo-wrapper">
+							<img src="/static/favicon.png" alt="Logo" class="menu-logo">
+						</div>
+						<span class="menu-title">Sandbox <span class="tech-accent">AI.NET</span></span>
 					</div>
 					<div class="menu-links">
 						<a href="/about" class="menu-link">About</a>
@@ -274,11 +276,11 @@
 		animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 	}
 	
-	/* Menu bar styling */
+	/* AI/Scientific themed hot menu bar styling */
 	.app-menu-bar {
-		background-color: #ffffff;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-		height: 60px;
+		background: linear-gradient(90deg, #bfbad5 0%, #807676 100%);
+		box-shadow: 0 2px 12px rgba(31, 87, 255, 0.15);
+		height: 64px;
 		font-family: 'Archivo', system-ui, -apple-system, sans-serif;
 		display: flex;
 		align-items: center;
@@ -287,21 +289,39 @@
 		z-index: 50;
 		width: 100%;
 		flex-shrink: 0;
+		position: relative;
+		overflow: hidden;
+	}
+	
+	/* Neural network grid pattern overlay */
+	.app-menu-bar::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-image: 
+			radial-gradient(circle at 10px 10px, rgba(82, 109, 255, 0.05) 2px, transparent 0),
+			radial-gradient(circle at 25px 25px, rgba(82, 109, 255, 0.03) 2px, transparent 0);
+		background-size: 30px 30px;
+		opacity: 0.5;
+		pointer-events: none;
 	}
 	
 	html.dark .app-menu-bar {
-		background-color: #171717;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+		background: linear-gradient(90deg, #13111c 0%, #1a1b2e 100%);
+		box-shadow: 0 2px 12px rgba(0, 86, 255, 0.2);
 	}
 	
 	html.oled-dark .app-menu-bar {
-		background-color: #000000;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+		background: linear-gradient(90deg, #000000 0%, #070716 100%);
+		box-shadow: 0 2px 12px rgba(0, 47, 138, 0.3);
 	}
 	
 	html.her .app-menu-bar {
-		background-color: #983724;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+		background: linear-gradient(90deg, #6e2219 0%, #983724 100%);
+		box-shadow: 0 2px 12px rgba(255, 94, 57, 0.25);
 	}
 	
 	.menu-container {
@@ -311,6 +331,7 @@
 		width: 100%;
 		max-width: 1280px;
 		margin: 0 auto;
+		position: relative;
 	}
 	
 	.logo-section {
@@ -318,91 +339,142 @@
 		align-items: center;
 	}
 	
-	.menu-logo {
-		height: 32px;
+	.logo-wrapper {
+		position: relative;
 		margin-right: 12px;
 	}
 	
+	.logo-wrapper::after {
+		content: "";
+		position: absolute;
+		top: -5px;
+		left: -5px;
+		right: -5px;
+		bottom: -5px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, rgba(0, 183, 255, 0.15), rgba(82, 109, 255, 0));
+		z-index: -1;
+		animation: pulse-subtle 3s infinite ease-in-out;
+	}
+	
+	@keyframes pulse-subtle {
+		0%, 100% { transform: scale(1); opacity: 0.5; }
+		50% { transform: scale(1.1); opacity: 0.8; }
+	}
+	
+	.menu-logo {
+		height: 32px;
+		filter: drop-shadow(0 0 3px rgba(0, 183, 255, 0.5));
+	}
+	
 	.menu-title {
-		font-size: 18px;
-		font-weight: 500;
-		color: #333333;
-		letter-spacing: 0.15px;
+		font-size: 20px;
+		font-weight: 600;
+		color: white;
+		letter-spacing: 0.5px;
+		background: linear-gradient(to right, #ffffff, #a1c4fd);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
 	}
 	
-	html.dark .menu-title {
-		color: #ffffff;
+	.tech-accent {
+		background: linear-gradient(to right, #00c6ff, #0072ff);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
 	}
 	
-	html.oled-dark .menu-title {
-		color: #ffffff;
+	html.dark .tech-accent {
+		background: linear-gradient(to right, #00c6ff, #0072ff);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
 	}
 	
-	html.her .menu-title {
-		color: #ffffff;
+	html.oled-dark .tech-accent {
+		background: linear-gradient(to right, #00c6ff, #0072ff);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+	
+	html.her .tech-accent {
+		background: linear-gradient(to right, #ffcc33, #ff5e39);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
 	}
 	
 	.menu-links {
 		display: flex;
-		gap: 8px;
+		gap: 12px;
 	}
 	
 	.menu-link {
 		text-decoration: none;
-		color: #333333;
+		color: rgba(255, 255, 255, 0.8);
 		font-size: 14px;
 		font-weight: 500;
 		padding: 8px 16px;
-		border-radius: 4px;
-		transition: background-color 0.3s;
-		text-transform: uppercase;
+		border-radius: 6px;
+		transition: all 0.3s ease;
+		position: relative;
 		letter-spacing: 0.5px;
+		backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.05);
 	}
 	
-	html.dark .menu-link {
-		color: #ffffff;
-	}
-	
-	html.oled-dark .menu-link {
-		color: #ffffff;
-	}
-	
-	html.her .menu-link {
-		color: #ffffff;
+	.menu-link::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		border-radius: 6px;
+		background: linear-gradient(135deg, rgba(82, 109, 255, 0.15), rgba(0, 183, 255, 0.05));
+		opacity: 0;
+		transition: opacity 0.3s ease;
 	}
 	
 	.menu-link:hover {
-		background-color: rgba(0,0,0,0.04);
+		color: rgba(255, 255, 255, 1);
+		box-shadow: 0 2px 10px rgba(0, 183, 255, 0.15);
+		transform: translateY(-1px);
+		border: 1px solid rgba(82, 109, 255, 0.3);
 	}
 	
-	html.dark .menu-link:hover {
-		background-color: rgba(255,255,255,0.05);
-	}
-	
-	html.oled-dark .menu-link:hover {
-		background-color: rgba(255,255,255,0.05);
+	.menu-link:hover::before {
+		opacity: 1;
 	}
 	
 	html.her .menu-link:hover {
-		background-color: rgba(255,255,255,0.1);
+		box-shadow: 0 2px 10px rgba(255, 94, 57, 0.25);
+		border: 1px solid rgba(255, 204, 51, 0.3);
+	}
+	
+	html.her .menu-link::before {
+		background: linear-gradient(135deg, rgba(255, 204, 51, 0.15), rgba(255, 94, 57, 0.05));
 	}
 	
 	@media (max-width: 600px) {
 		.app-menu-bar {
-			height: 56px;
+			height: 58px;
 		}
 		
 		.menu-title {
-			font-size: 16px;
+			font-size: 18px;
 		}
 		
 		.menu-links {
-			gap: 4px;
+			gap: 8px;
 		}
 		
 		.menu-link {
-			padding: 6px 10px;
+			padding: 6px 12px;
 			font-size: 13px;
+		}
+		
+		.logo-wrapper::after {
+			display: none;
 		}
 	}
 	
@@ -426,8 +498,8 @@
 	
 	#app-content {
 		flex: 1 0 auto !important;
-		height: calc(100vh - 60px) !important;
-		max-height: calc(100vh - 60px) !important;
+		height: calc(100vh - 64px) !important;
+		max-height: calc(100vh - 64px) !important;
 		position: relative !important;
 		overflow-y: auto !important;
 		overflow-x: hidden !important;
@@ -476,8 +548,8 @@
 		}
 		
 		#app-content {
-			height: calc(-webkit-fill-available - 60px) !important;
-			max-height: calc(-webkit-fill-available - 60px) !important;
+			height: calc(-webkit-fill-available - 64px) !important;
+			max-height: calc(-webkit-fill-available - 64px) !important;
 		}
 		
 		@media (max-height: 600px) {
