@@ -107,6 +107,26 @@
 	</head>
 
 	<body data-sveltekit-preload-data="hover">
+		<!-- Material UI style top menu that scrolls with the page -->
+		<div id="top-menu" class="top-menu">
+			<div class="menu-container">
+				<div class="logo-section">
+					<img src="/static/favicon.png" alt="Logo" class="menu-logo">
+					<span class="menu-title">Open WebUI</span>
+				</div>
+				<div class="menu-links">
+					<a href="/about" class="menu-link">About</a>
+					<a href="/" class="menu-link">Sandbox</a>
+					<a href="/consulting" class="menu-link">Consulting</a>
+					<a href="/services" class="menu-link">Services</a>
+					<a href="/docs" class="menu-link">Documentation</a>
+				</div>
+				<div class="menu-actions">
+					<button class="menu-button">Sign In</button>
+				</div>
+			</div>
+		</div>
+
 		<div style="display: contents">%sveltekit.body%</div>
 
 		<div
@@ -251,5 +271,176 @@
 
 	.animate-pulse-fast {
 		animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+	
+	/* Material UI style top menu */
+	.top-menu {
+		width: 100%;
+		background-color: #ffffff;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+		transition: background-color 0.2s ease, color 0.2s ease;
+		height: 64px;
+		display: flex;
+		align-items: center;
+		padding: 0 16px;
+		box-sizing: border-box;
+	}
+	
+	html.dark .top-menu {
+		background-color: #171717;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+	}
+	
+	html.oled-dark .top-menu {
+		background-color: #000000;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+	}
+	
+	html.her .top-menu {
+		background-color: #983724;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+	}
+	
+	.menu-container {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		max-width: 1280px;
+		margin: 0 auto;
+	}
+	
+	.logo-section {
+		display: flex;
+		align-items: center;
+	}
+	
+	.menu-logo {
+		height: 32px;
+		margin-right: 12px;
+	}
+	
+	.menu-title {
+		font-size: 18px;
+		font-weight: 500;
+		color: #333333;
+	}
+	
+	html.dark .menu-title {
+		color: #e5e7eb;
+	}
+	
+	html.oled-dark .menu-title {
+		color: #e5e7eb;
+	}
+	
+	html.her .menu-title {
+		color: #ffffff;
+	}
+	
+	.menu-links {
+		display: flex;
+		gap: 24px;
+	}
+	
+	.menu-link {
+		text-decoration: none;
+		color: #333333;
+		font-size: 15px;
+		padding: 6px 8px;
+		border-radius: 4px;
+		transition: background-color 0.2s;
+	}
+	
+	html.dark .menu-link {
+		color: #e5e7eb;
+	}
+	
+	html.oled-dark .menu-link {
+		color: #e5e7eb;
+	}
+	
+	html.her .menu-link {
+		color: #ffffff;
+	}
+	
+	.menu-link:hover {
+		background-color: rgba(0,0,0,0.04);
+	}
+	
+	html.dark .menu-link:hover {
+		background-color: rgba(255,255,255,0.08);
+	}
+	
+	html.oled-dark .menu-link:hover {
+		background-color: rgba(255,255,255,0.08);
+	}
+	
+	html.her .menu-link:hover {
+		background-color: rgba(255,255,255,0.15);
+	}
+	
+	.menu-button {
+		background-color: rgba(0,0,0,0.07);
+		border: none;
+		border-radius: 4px;
+		padding: 8px 16px;
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background-color 0.2s;
+		color: #333333;
+	}
+	
+	html.dark .menu-button {
+		background-color: rgba(255,255,255,0.1);
+		color: #e5e7eb;
+	}
+	
+	html.oled-dark .menu-button {
+		background-color: rgba(255,255,255,0.1);
+		color: #e5e7eb;
+	}
+	
+	html.her .menu-button {
+		background-color: rgba(255,255,255,0.2);
+		color: #ffffff;
+	}
+	
+	.menu-button:hover {
+		background-color: rgba(0,0,0,0.12);
+	}
+	
+	html.dark .menu-button:hover {
+		background-color: rgba(255,255,255,0.15);
+	}
+	
+	html.oled-dark .menu-button:hover {
+		background-color: rgba(255,255,255,0.15);
+	}
+	
+	html.her .menu-button:hover {
+		background-color: rgba(255,255,255,0.25);
+	}
+	
+	@media (max-width: 768px) {
+		.menu-links {
+			gap: 10px;
+		}
+		
+		.menu-link {
+			font-size: 14px;
+		}
+		
+		.menu-button {
+			padding: 6px 12px;
+		}
+	}
+	
+	@media (max-width: 600px) {
+		.menu-actions {
+			display: none;
+		}
 	}
 </style>
