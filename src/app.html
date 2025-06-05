@@ -107,27 +107,30 @@
 	</head>
 
 	<body data-sveltekit-preload-data="hover">
-		<!-- Material UI style top menu that scrolls with the page -->
-		<div id="top-menu" class="top-menu">
-			<div class="menu-container">
-				<div class="logo-section">
-					<img src="/static/favicon.png" alt="Logo" class="menu-logo">
-					<span class="menu-title">Open WebUI</span>
-				</div>
-				<div class="menu-links">
-					<a href="/about" class="menu-link">About</a>
-					<a href="/" class="menu-link">Sandbox</a>
-					<a href="/consulting" class="menu-link">Consulting</a>
-					<a href="/services" class="menu-link">Services</a>
-					<a href="/docs" class="menu-link">Documentation</a>
-				</div>
-				<div class="menu-actions">
-					<button class="menu-button">Sign In</button>
+		<!-- App wrapper with menu bar and content -->
+		<div id="app-wrapper" class="flex flex-col h-screen max-h-screen overflow-hidden">
+			<!-- Top menu bar -->
+			<div id="top-menu-bar" class="app-menu-bar">
+				<div class="menu-container">
+					<div class="logo-section">
+						<div class="logo-wrapper">
+							<img src="/static/favicon.png" alt="Logo" class="menu-logo">
+						</div>
+						<span class="menu-title">Sandbox <span class="tech-accent">AI.NET</span></span>
+					</div>
+					<div class="menu-links">
+						<a href="/about" class="menu-link">About</a>
+						<a href="/" class="menu-link">Sandbox</a>
+						<a href="/consulting" class="menu-link">Consulting</a>
+					</div>
 				</div>
 			</div>
+			
+			<!-- Main content area with auto height adjustment -->
+			<div id="app-content" class="flex-1 h-0 overflow-auto">
+				<div style="display: contents">%sveltekit.body%</div>
+			</div>
 		</div>
-
-		<div style="display: contents">%sveltekit.body%</div>
 
 		<div
 			id="splash-screen"
@@ -273,33 +276,52 @@
 		animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 	}
 	
-	/* Material UI style top menu */
-	.top-menu {
-		width: 100%;
-		background-color: #ffffff;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-		font-family: 'Archivo', system-ui, -apple-system, sans-serif;
-		transition: background-color 0.2s ease, color 0.2s ease;
+	/* AI/Scientific themed hot menu bar styling */
+	.app-menu-bar {
+		background: linear-gradient(90deg, #bfbad5 0%, #807676 100%);
+		box-shadow: 0 2px 12px rgba(31, 87, 255, 0.15);
 		height: 64px;
+		font-family: 'Archivo', system-ui, -apple-system, sans-serif;
 		display: flex;
 		align-items: center;
 		padding: 0 16px;
 		box-sizing: border-box;
+		z-index: 50;
+		width: 100%;
+		flex-shrink: 0;
+		position: relative;
+		overflow: hidden;
 	}
 	
-	html.dark .top-menu {
-		background-color: #171717;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+	/* Neural network grid pattern overlay */
+	.app-menu-bar::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-image: 
+			radial-gradient(circle at 10px 10px, rgba(82, 109, 255, 0.05) 2px, transparent 0),
+			radial-gradient(circle at 25px 25px, rgba(82, 109, 255, 0.03) 2px, transparent 0);
+		background-size: 30px 30px;
+		opacity: 0.5;
+		pointer-events: none;
 	}
 	
-	html.oled-dark .top-menu {
-		background-color: #000000;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+	html.dark .app-menu-bar {
+		background: linear-gradient(90deg, #13111c 0%, #1a1b2e 100%);
+		box-shadow: 0 2px 12px rgba(0, 86, 255, 0.2);
 	}
 	
-	html.her .top-menu {
-		background-color: #983724;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+	html.oled-dark .app-menu-bar {
+		background: linear-gradient(90deg, #000000 0%, #070716 100%);
+		box-shadow: 0 2px 12px rgba(0, 47, 138, 0.3);
+	}
+	
+	html.her .app-menu-bar {
+		background: linear-gradient(90deg, #6e2219 0%, #983724 100%);
+		box-shadow: 0 2px 12px rgba(255, 94, 57, 0.25);
 	}
 	
 	.menu-container {
@@ -309,6 +331,7 @@
 		width: 100%;
 		max-width: 1280px;
 		margin: 0 auto;
+		position: relative;
 	}
 	
 	.logo-section {
@@ -316,131 +339,241 @@
 		align-items: center;
 	}
 	
-	.menu-logo {
-		height: 32px;
+	.logo-wrapper {
+		position: relative;
 		margin-right: 12px;
 	}
 	
+	.logo-wrapper::after {
+		content: "";
+		position: absolute;
+		top: -5px;
+		left: -5px;
+		right: -5px;
+		bottom: -5px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, rgba(0, 183, 255, 0.15), rgba(82, 109, 255, 0));
+		z-index: -1;
+		animation: pulse-subtle 3s infinite ease-in-out;
+	}
+	
+	@keyframes pulse-subtle {
+		0%, 100% { transform: scale(1); opacity: 0.5; }
+		50% { transform: scale(1.1); opacity: 0.8; }
+	}
+	
+	.menu-logo {
+		height: 32px;
+		filter: drop-shadow(0 0 3px rgba(0, 183, 255, 0.5));
+	}
+	
 	.menu-title {
-		font-size: 18px;
-		font-weight: 500;
-		color: #333333;
+		font-size: 20px;
+		font-weight: 600;
+		color: white;
+		letter-spacing: 0.5px;
+		background: linear-gradient(to right, #ffffff, #a1c4fd);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
 	}
 	
-	html.dark .menu-title {
-		color: #e5e7eb;
+	.tech-accent {
+		background: linear-gradient(to right, #00c6ff, #0072ff);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
 	}
 	
-	html.oled-dark .menu-title {
-		color: #e5e7eb;
+	html.dark .tech-accent {
+		background: linear-gradient(to right, #00c6ff, #0072ff);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
 	}
 	
-	html.her .menu-title {
-		color: #ffffff;
+	html.oled-dark .tech-accent {
+		background: linear-gradient(to right, #00c6ff, #0072ff);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+	
+	html.her .tech-accent {
+		background: linear-gradient(to right, #ffcc33, #ff5e39);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
 	}
 	
 	.menu-links {
 		display: flex;
-		gap: 24px;
+		gap: 12px;
 	}
 	
 	.menu-link {
 		text-decoration: none;
-		color: #333333;
-		font-size: 15px;
-		padding: 6px 8px;
-		border-radius: 4px;
-		transition: background-color 0.2s;
+		color: rgba(255, 255, 255, 0.8);
+		font-size: 14px;
+		font-weight: 500;
+		padding: 8px 16px;
+		border-radius: 6px;
+		transition: all 0.3s ease;
+		position: relative;
+		letter-spacing: 0.5px;
+		backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.05);
 	}
 	
-	html.dark .menu-link {
-		color: #e5e7eb;
-	}
-	
-	html.oled-dark .menu-link {
-		color: #e5e7eb;
-	}
-	
-	html.her .menu-link {
-		color: #ffffff;
+	.menu-link::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		border-radius: 6px;
+		background: linear-gradient(135deg, rgba(82, 109, 255, 0.15), rgba(0, 183, 255, 0.05));
+		opacity: 0;
+		transition: opacity 0.3s ease;
 	}
 	
 	.menu-link:hover {
-		background-color: rgba(0,0,0,0.04);
+		color: rgba(255, 255, 255, 1);
+		box-shadow: 0 2px 10px rgba(0, 183, 255, 0.15);
+		transform: translateY(-1px);
+		border: 1px solid rgba(82, 109, 255, 0.3);
 	}
 	
-	html.dark .menu-link:hover {
-		background-color: rgba(255,255,255,0.08);
-	}
-	
-	html.oled-dark .menu-link:hover {
-		background-color: rgba(255,255,255,0.08);
+	.menu-link:hover::before {
+		opacity: 1;
 	}
 	
 	html.her .menu-link:hover {
-		background-color: rgba(255,255,255,0.15);
+		box-shadow: 0 2px 10px rgba(255, 94, 57, 0.25);
+		border: 1px solid rgba(255, 204, 51, 0.3);
 	}
 	
-	.menu-button {
-		background-color: rgba(0,0,0,0.07);
-		border: none;
-		border-radius: 4px;
-		padding: 8px 16px;
-		font-size: 14px;
-		font-weight: 500;
-		cursor: pointer;
-		transition: background-color 0.2s;
-		color: #333333;
-	}
-	
-	html.dark .menu-button {
-		background-color: rgba(255,255,255,0.1);
-		color: #e5e7eb;
-	}
-	
-	html.oled-dark .menu-button {
-		background-color: rgba(255,255,255,0.1);
-		color: #e5e7eb;
-	}
-	
-	html.her .menu-button {
-		background-color: rgba(255,255,255,0.2);
-		color: #ffffff;
-	}
-	
-	.menu-button:hover {
-		background-color: rgba(0,0,0,0.12);
-	}
-	
-	html.dark .menu-button:hover {
-		background-color: rgba(255,255,255,0.15);
-	}
-	
-	html.oled-dark .menu-button:hover {
-		background-color: rgba(255,255,255,0.15);
-	}
-	
-	html.her .menu-button:hover {
-		background-color: rgba(255,255,255,0.25);
-	}
-	
-	@media (max-width: 768px) {
-		.menu-links {
-			gap: 10px;
-		}
-		
-		.menu-link {
-			font-size: 14px;
-		}
-		
-		.menu-button {
-			padding: 6px 12px;
-		}
+	html.her .menu-link::before {
+		background: linear-gradient(135deg, rgba(255, 204, 51, 0.15), rgba(255, 94, 57, 0.05));
 	}
 	
 	@media (max-width: 600px) {
-		.menu-actions {
+		.app-menu-bar {
+			height: 58px;
+		}
+		
+		.menu-title {
+			font-size: 18px;
+		}
+		
+		.menu-links {
+			gap: 8px;
+		}
+		
+		.menu-link {
+			padding: 6px 12px;
+			font-size: 13px;
+		}
+		
+		.logo-wrapper::after {
 			display: none;
 		}
 	}
+	
+	/* Complete height adjustment fix */
+	html, body {
+		height: 100% !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		overflow: hidden !important;
+	}
+	
+	#app-wrapper {
+		display: flex !important;
+		flex-direction: column !important;
+		height: 100vh !important;
+		max-height: 100vh !important;
+		width: 100% !important;
+		overflow: hidden !important;
+		position: relative !important;
+	}
+	
+	#app-content {
+		flex: 1 0 auto !important;
+		height: calc(100vh - 64px) !important;
+		max-height: calc(100vh - 64px) !important;
+		position: relative !important;
+		overflow-y: auto !important;
+		overflow-x: hidden !important;
+	}
+	
+	/* Fix for any SvelteKit content wrappers */
+	#app-content > div, 
+	#app-content > div > div,
+	#app-content [data-sveltekit-root] {
+		height: 100% !important;
+		max-height: 100% !important;
+		display: flex !important;
+		flex-direction: column !important;
+		min-height: 0 !important;
+	}
+	
+	/* Fix for common WebUI components */
+	#app-content .h-screen,
+	#app-content .min-h-screen,
+	#app-content .max-h-screen,
+	#app-content [class*="h-[100vh]"],
+	#app-content [class*="min-h-[100vh]"],
+	#app-content [class*="max-h-[100vh]"] {
+		height: 100% !important;
+		min-height: 0 !important;
+		max-height: 100% !important;
+	}
+	
+	/* Responsive settings */
+	@media (max-height: 600px) {
+		.app-menu-bar {
+			height: 50px !important;
+		}
+		
+		#app-content {
+			height: calc(100vh - 50px) !important;
+			max-height: calc(100vh - 50px) !important;
+		}
+	}
+	
+	/* Mobile fix */
+	@supports (-webkit-touch-callout: none) {
+		body, #app-wrapper {
+			height: -webkit-fill-available !important;
+			max-height: -webkit-fill-available !important;
+		}
+		
+		#app-content {
+			height: calc(-webkit-fill-available - 64px) !important;
+			max-height: calc(-webkit-fill-available - 64px) !important;
+		}
+		
+		@media (max-height: 600px) {
+			#app-content {
+				height: calc(-webkit-fill-available - 50px) !important;
+				max-height: calc(-webkit-fill-available - 50px) !important;
+			}
+		}
+	}
+
+	/* Add this script to fix any dynamic height issues after page load */
+	document.addEventListener('DOMContentLoaded', function() {
+		// Ensure content properly fills the available space
+		function adjustContentHeight() {
+			const menuHeight = document.getElementById('top-menu-bar').offsetHeight;
+			const content = document.getElementById('app-content');
+			content.style.height = `calc(100vh - ${menuHeight}px)`;
+			content.style.maxHeight = `calc(100vh - ${menuHeight}px)`;
+		}
+		
+		// Initial adjustment
+		adjustContentHeight();
+		
+		// Adjust on resize
+		window.addEventListener('resize', adjustContentHeight);
+	});
 </style>

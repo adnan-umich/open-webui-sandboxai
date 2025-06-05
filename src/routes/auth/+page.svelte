@@ -144,7 +144,7 @@
 		}
 		await checkOauthCallback();
 
-		loaded = true;
+		loaded = false;
 		setLogoImage();
 
 		if (($config?.features.auth_trusted_header ?? false) || $config?.features.auth === false) {
@@ -166,9 +166,11 @@
 	getStartedHandler={() => {
 		onboarding = false;
 		mode = $config?.features.enable_ldap ? 'ldap' : 'signup';
+		loaded = true
 	}}
 />
 
+{#if loaded}
 <div class="w-full h-screen max-h-[100dvh] text-white relative">
 	<div class="w-full h-full absolute top-0 left-0 bg-white dark:bg-black"></div>
 
@@ -492,3 +494,4 @@
 		</div>
 	{/if}
 </div>
+{/if}
