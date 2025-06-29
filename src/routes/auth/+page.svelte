@@ -144,7 +144,7 @@
 		}
 		await checkOauthCallback();
 
-		loaded = false;
+		loaded = true;
 		setLogoImage();
 
 		if (($config?.features.auth_trusted_header ?? false) || $config?.features.auth === false) {
@@ -166,11 +166,9 @@
 	getStartedHandler={() => {
 		onboarding = false;
 		mode = $config?.features.enable_ldap ? 'ldap' : 'signup';
-		loaded = true
 	}}
 />
 
-{#if loaded}
 <div class="w-full h-screen max-h-[100dvh] text-white relative">
 	<div class="w-full h-full absolute top-0 left-0 bg-white dark:bg-black"></div>
 
@@ -183,7 +181,7 @@
 					<img
 						id="logo"
 						crossorigin="anonymous"
-						src="{WEBUI_BASE_URL}/static/splash.png"
+						src="{WEBUI_BASE_URL}/static/favicon.png"
 						class=" w-6 rounded-full"
 						alt=""
 					/>
@@ -494,4 +492,3 @@
 		</div>
 	{/if}
 </div>
-{/if}
